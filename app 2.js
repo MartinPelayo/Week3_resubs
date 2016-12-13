@@ -7,6 +7,8 @@ var displayIndex1 = 0;
 var displayIndex2 = 1;
 var displayIndex3 = 2;
 
+var totalVotes = 0;
+
 var elImageArea = document.getElementById('image-area');
 
 var elImage1 = document.getElementById('image-1');
@@ -17,13 +19,21 @@ var elChart = document.getElementById('chart');
 
 
 function clickHandler(event) {
-  var clickedImagePath = event.target.src.split('assets/')[1];
-  var clickedImageIndex = paths.indexOf(clickedImagePath);
-  items[clickedImageIndex].clicked += 1;
+  if ( totalVotes !== 25){
+    var clickedImagePath = event.target.src.split('assets/')[1];
+    var clickedImageIndex = paths.indexOf(clickedImagePath);
+    items[clickedImageIndex].clicked += 1;
 
-  changePicture();
+    totalVotes += 1;
+
+    changePicture();
+    saveData();
+
+  }
+if (totalVotes === 25){
   renderChart();
 
+}
 
 }
 
@@ -61,17 +71,31 @@ function generateRandomNumber() {
 }
 
 function init(){
-  for (var i = 0; i < paths.length; i++) {
-    items.push(new Item(paths[i]));
+  var dataItems = localStorage.getItem('items');
+  if (dataItems){
+    items = JSON.parse(dataItems);
+    displayIndex1 = parseInt(localStorage.getItem('displayIndex1'));
+    displayIndex2 = parseInt(localStorage.getItem('displayIndex2'));
+    displayIndex3 = parseInt(localStorage.getItem('displayIndex3'));
+    totalVotes = parseInt(localStorage.getItem('totalVotes'));
+
+    if (totalVotes === 25){
+      totalVotes = 0;
+    }
+
+  }else{
+    for (var i = 0; i < paths.length; i++) {
+      items.push(new Item(paths[i]));
+    }
   }
 
-elImage1.src = items[displayIndex1].filepath;
-elImage2.src = items[displayIndex2].filepath;
-elImage3.src = items[displayIndex3].filepath;
+  elImage1.src = items[displayIndex1].filepath;
+  elImage2.src = items[displayIndex2].filepath;
+  elImage3.src = items[displayIndex3].filepath;
 
-items[displayIndex1].shown += 1;
-items[displayIndex2].shown += 1;
-items[displayIndex3].shown += 1;
+  items[displayIndex1].shown += 1;
+  items[displayIndex2].shown += 1;
+  items[displayIndex3].shown += 1;
 
 }
 
@@ -97,12 +121,12 @@ function renderChart() {
 
     type: 'bar',
     data: {
-    labels: names,
-     datasets: [
-       {
-         label: '# of Votes',
-         data: clicks,
-         backgroundColor: [
+      labels: names,
+      datasets: [
+        {
+          label: '# of Votes',
+          data: clicks,
+          backgroundColor: [
            'rgba(207, 54, 16, 0.2)',
            'rgba(106, 6, 6, 0.2)',
            'rgba(187, 82, 82, 0.2)',
@@ -124,8 +148,8 @@ function renderChart() {
            'rgba(249, 107, 197, 0.2)',
            'rgba(175, 2, 112, 0.2)',
            'rgba(252, 94, 194, 0.2)'
-         ],
-         borderColor: [
+          ],
+          borderColor: [
            'rgba(207, 54, 16, 1)',
            'rgba(106, 6, 6, 1)',
            'rgba(187, 82, 82, 1)',
@@ -148,29 +172,33 @@ function renderChart() {
            'rgba(175, 2, 112, 1)',
            'rgba(252, 94, 194, 1)'
          ],
-         borderWidth: 1
-       }
-     ]
-   },
-   options: {
-     scales: {
-       yAxes: [
-         {
-           ticks: {
-             beginAtZero: true
-           }
-         }
-       ]
-     }
-   }
-};
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      scales: {
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true
+            }
+          }
+        ]
+      }
+    }
+  };
   new Chart(elChart, chartData);
 }
 
+function saveData() {
+  localStorage.setItem('items', JSON.stringify(items) );
+  localStorage.setItem('displayIndex1', displayIndex1);
+  localStorage.setItem('displayIndex2', displayIndex2);
+  localStorage.setItem('displayIndex3', displayIndex3);
+  localStorage.setItem('totalVotes', totalVotes);
 
-
-
+}
 
 init();
-
 elImageArea.addEventListener('click', clickHandler);
